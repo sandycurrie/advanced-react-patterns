@@ -3,6 +3,7 @@
 
 import * as React from 'react'
 import {Switch} from '../switch'
+import warning from 'warning'
 
 const callAll = (...fns) => (...args) => fns.forEach(fn => fn?.(...args))
 
@@ -37,6 +38,19 @@ function useToggle({
   const onIsControlled = controlledOn != null;
 
   const {on} = onIsControlled ? { on: controlledOn } : state;
+
+  const {current: onWasControlled} = React.useRef(onIsControlled);
+  React.useEffect(() => {
+    warning(
+      !(onIsControlled && !onWasControlled),
+      'useToggle is changing from uncontrolled to controlled'
+    )
+    warning(
+      !(!onIsControlled && onWasControlled),
+      'useToggle is changing from controlled to uncontrolled'
+    )
+
+  }, [onIsControlled, onWasControlled]);
 
   const hasOnChange = !!onChange;
   React.useEffect(() => {
