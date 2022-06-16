@@ -30,12 +30,20 @@ function useToggle({
   reducer = toggleReducer,
   onChange,
   on: controlledOn = null,
+  readonly = false,
 } = {}) {
   const {current: initialState} = React.useRef({on: initialOn})
   const [state, dispatch] = React.useReducer(reducer, initialState)
   const onIsControlled = controlledOn != null;
 
   const {on} = onIsControlled ? { on: controlledOn } : state;
+
+  const hasOnChange = !!onChange;
+  React.useEffect(() => {
+    if (!hasOnChange && onIsControlled && !readonly) {
+      console.error("You need to provide an onchange prop for a controlled component, or the readonly flag.");
+    }
+  },[hasOnChange, onIsControlled]);
 
   const dispatchWithOnChange = (action) => {
     if (!onIsControlled) {
@@ -71,8 +79,8 @@ function useToggle({
   }
 }
 
-function Toggle({on: controlledOn, onChange}) {
-  const {on, getTogglerProps} = useToggle({on: controlledOn, onChange})
+function Toggle({on: controlledOn, onChange, readonly}) {
+  const {on, getTogglerProps} = useToggle({on: controlledOn, onChange, readonly})
   const props = getTogglerProps({on})
   return <Switch {...props} />
 }
@@ -97,7 +105,7 @@ function App() {
   return (
     <div>
       <div>
-        <Toggle on={bothOn} onChange={handleToggleChange} />
+        <Toggle on={bothOn} readonly={true} />
         <Toggle on={bothOn} onChange={handleToggleChange} />
       </div>
       {timesClicked > 4 ? (
